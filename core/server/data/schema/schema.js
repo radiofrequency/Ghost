@@ -201,6 +201,7 @@ module.exports = {
     },
     subscribers: {
         id: {type: 'increments', nullable: false, primary: true},
+        uuid: {type: 'string', maxlength: 36, nullable: false, validations: {isUUID: true}},
         email: {type: 'string', maxlength: 254, nullable: false, unique: true, validations: {isEmail: true}},
         created_at: {type: 'dateTime', nullable: false},
         created_by: {type: 'integer', nullable: false},
