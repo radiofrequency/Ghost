@@ -18,6 +18,7 @@ var _                          = require('lodash'),
     DataImportError            = require('./data-import-error'),
     TooManyRequestsError       = require('./too-many-requests-error'),
     TokenRevocationError       = require('./token-revocation-error'),
+    VersionMismatchError       = require('./version-mismatch-error'),
     i18n                       = require('../i18n'),
     config,
     errors,
@@ -152,9 +153,12 @@ errors = {
             context = i18n.t('errors.errors.databaseIsReadOnly');
             help = i18n.t('errors.errors.checkDatabase');
         }
+
         // TODO: Logging framework hookup
         // Eventually we'll have better logging which will know about envs
-        if ((process.env.NODE_ENV === 'development' ||
+        // you can use DEBUG=true when running tests and need error stdout
+        if ((process.env.NODE_LEVEL === 'DEBUG' ||
+            process.env.NODE_ENV === 'development' ||
             process.env.NODE_ENV === 'staging' ||
             process.env.NODE_ENV === 'production')) {
             msgs = [chalk.red(i18n.t('errors.errors.error'), err), '\n'];
@@ -442,3 +446,4 @@ module.exports.DataImportError            = DataImportError;
 module.exports.MethodNotAllowedError      = MethodNotAllowedError;
 module.exports.TooManyRequestsError       = TooManyRequestsError;
 module.exports.TokenRevocationError       = TokenRevocationError;
+module.exports.VersionMismatchError       = VersionMismatchError;

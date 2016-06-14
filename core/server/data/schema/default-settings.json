@@ -1,7 +1,7 @@
 {
     "core": {
         "databaseVersion": {
-            "defaultValue": "005"
+            "defaultValue": "006"
         },
         "dbHash": {
             "defaultValue": null
@@ -11,6 +11,9 @@
         },
         "displayUpdateNotification": {
             "defaultValue": null
+        },
+        "migrations": {
+            "defaultValue": "{}"
         }
     },
     "blog": {
@@ -40,6 +43,12 @@
                 "isLength": [1, 1000]
             }
         },
+        "activeTimezone": {
+            "defaultValue": "Etc/UTC",
+            "validations": {
+                "isNull": false
+            }
+        },
         "forceI18n": {
             "defaultValue": "true",
             "validations": {
@@ -61,11 +70,20 @@
         "ghost_foot": {
             "defaultValue" : ""
         },
+        "facebook": {
+            "defaultValue" : ""
+        },
+        "twitter": {
+            "defaultValue" : ""
+        },
         "labs": {
             "defaultValue": "{}"
         },
         "navigation": {
             "defaultValue": "[{\"label\":\"Home\", \"url\":\"/\"}]"
+        },
+        "slack": {
+            "defaultValue": "[{\"url\":\"\"}]"
         }
     },
     "theme": {

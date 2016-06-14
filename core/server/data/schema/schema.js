@@ -35,8 +35,8 @@ module.exports = {
         bio: {type: 'string', maxlength: 200, nullable: true},
         website: {type: 'text', maxlength: 2000, nullable: true, validations: {isEmptyOrURL: true}},
         location: {type: 'text', maxlength: 65535, nullable: true},
-        facebook: {type: 'text', maxlength: 2000, nullable: true, validations: {isEmptyOrURL: true}},
-        twitter: {type: 'text', maxlength: 2000, nullable: true, validations: {isEmptyOrURL: true}},
+        facebook: {type: 'text', maxlength: 2000, nullable: true},
+        twitter: {type: 'text', maxlength: 2000, nullable: true},
         accessibility: {type: 'text', maxlength: 65535, nullable: true},
         status: {type: 'string', maxlength: 150, nullable: false, defaultTo: 'active'},
         language: {type: 'string', maxlength: 6, nullable: false, defaultTo: 'en_US'},
@@ -198,5 +198,21 @@ module.exports = {
         user_id: {type: 'integer', nullable: false, unsigned: true, references: 'users.id'},
         client_id: {type: 'integer', nullable: false, unsigned: true, references: 'clients.id'},
         expires: {type: 'bigInteger', nullable: false}
+    },
+    subscribers: {
+        id: {type: 'increments', nullable: false, primary: true},
+        uuid: {type: 'string', maxlength: 36, nullable: false, validations: {isUUID: true}},
+        name: {type: 'string', maxlength: 150, nullable: true},
+        email: {type: 'string', maxlength: 254, nullable: false, unique: true, validations: {isEmail: true}},
+        status: {type: 'string', maxlength: 150, nullable: false, defaultTo: 'pending', validations: {isIn: [['subscribed', 'pending', 'unsubscribed']]}},
+        post_id: {type: 'integer', nullable: true, unsigned: true, references: 'posts.id'},
+        subscribed_url: {type: 'text', maxlength: 2000, nullable: true, validations: {isEmptyOrURL: true}},
+        subscribed_referrer: {type: 'text', maxlength: 2000, nullable: true, validations: {isEmptyOrURL: true}},
+        unsubscribed_url: {type: 'text', maxlength: 2000, nullable: true, validations: {isEmptyOrURL: true}},
+        unsubscribed_at: {type: 'dateTime', nullable: true},
+        created_at: {type: 'dateTime', nullable: false},
+        created_by: {type: 'integer', nullable: false},
+        updated_at: {type: 'dateTime', nullable: true},
+        updated_by: {type: 'integer', nullable: true}
     }
 };

@@ -9,6 +9,7 @@
 var hbs             = require('express-hbs'),
     _               = require('lodash'),
     config          = require('../config'),
+    labs            = require('../utils/labs'),
     utils           = require('./utils'),
     tags;
 
@@ -26,6 +27,10 @@ tags = function (options) {
         output = '';
 
     function createTagList(tags) {
+        if (labs.isSet('internalTags')) {
+            tags = _.filter(tags, ['visibility', 'public']);
+        }
+
         if (autolink) {
             return _.map(tags, function (tag) {
                 return utils.linkTemplate({
@@ -34,7 +39,7 @@ tags = function (options) {
                 });
             });
         }
-        return _(tags).pluck('name').each(_.escape);
+        return _(tags).map('name').each(_.escape);
     }
 
     if (this.tags && this.tags.length) {

@@ -184,7 +184,10 @@ ConfigManager.prototype.set = function (config) {
         },
         theme: {
             // normalise the URL by removing any trailing slash
-            url: this._config.url ? this._config.url.replace(/\/$/, '') : ''
+            url: this._config.url ? this._config.url.replace(/\/$/, '') : '',
+
+            // default timezone
+            timezone: 'Etc/UTC'
         },
         routeKeywords: {
             tag: 'tag',
@@ -194,7 +197,7 @@ ConfigManager.prototype.set = function (config) {
             private: 'private',
             subscribe: 'subscribe'
         },
-        internalApps: ['private-blogging'],
+        internalApps: ['private-blogging', 'subscribers'],
         slugs: {
             // Used by generateSlug to generate slugs for posts, tags, users, ..
             // reserved slugs are reserved but can be extended/removed by apps
@@ -212,7 +215,8 @@ ConfigManager.prototype.set = function (config) {
         },
         deprecatedItems: ['updateCheck', 'mail.fromaddress'],
         // create a hash for cache busting assets
-        assetHash: assetHash
+        assetHash: assetHash,
+        preloadHeaders: this._config.preloadHeaders || false
     });
 
     // Also pass config object to
@@ -254,8 +258,9 @@ ConfigManager.prototype.load = function (configFilePath) {
             Promise.resolve(pendingConfig).then(function () {
                 return self.validate();
             }).then(function (rawConfig) {
-                resolve(self.init(rawConfig));
-            }).catch(reject);
+                return self.init(rawConfig);
+            }).then(resolve)
+            .catch(reject);
         });
     });
 };

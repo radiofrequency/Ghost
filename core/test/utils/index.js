@@ -14,6 +14,7 @@ var Promise       = require('bluebird'),
     filterData    = require('./fixtures/filter-param'),
     API           = require('./api'),
     fork          = require('./fork'),
+    mocks         = require('./mocks'),
     config        = require('../../server/config'),
 
     fixtures,
@@ -33,7 +34,11 @@ var Promise       = require('bluebird'),
 
 /** TEST FIXTURES **/
 fixtures = {
-    insertPosts: function insertPosts() {
+    insertPosts: function insertPosts(posts) {
+        return Promise.resolve(db.knex('posts').insert(posts));
+    },
+
+    insertPostsAndTags: function insertPosts() {
         return Promise.resolve(db.knex('posts').insert(DataGenerator.forKnex.posts)).then(function () {
             return db.knex('tags').insert(DataGenerator.forKnex.tags);
         }).then(function () {
@@ -56,7 +61,7 @@ fixtures = {
         }).then(function () {
             return db.knex('users').select('id');
         }).then(function (results) {
-            authors = _.pluck(results, 'id');
+            authors = _.map(results, 'id');
 
             // Let's insert posts with random authors
             for (i = 0; i < max; i += 1) {
@@ -80,8 +85,8 @@ fixtures = {
                 db.knex('tags').select('id')
             ]);
         }).then(function (results) {
-            var posts = _.pluck(results[0], 'id'),
-                tags = _.pluck(results[1], 'id'),
+            var posts = _.map(results[0], 'id'),
+                tags = _.map(results[1], 'id'),
                 promises = [],
                 i;
 
@@ -157,10 +162,10 @@ fixtures = {
             db.knex('posts').orderBy('id', 'asc').select('id'),
             db.knex('tags').select('id', 'name')
         ]).then(function (results) {
-            var posts = _.pluck(results[0], 'id'),
+            var posts = _.map(results[0], 'id'),
                 injectionTagId = _.chain(results[1])
-                    .where({name: 'injection'})
-                    .pluck('id')
+                    .filter({name: 'injection'})
+                    .map('id')
                     .value()[0],
                 promises = [],
                 i;
@@ -278,9 +283,9 @@ fixtures = {
         });
     },
 
-    insertOne: function insertOne(obj, fn) {
+    insertOne: function insertOne(obj, fn, index) {
         return db.knex(obj)
-           .insert(DataGenerator.forKnex[fn](DataGenerator.Content[obj][0]));
+           .insert(DataGenerator.forKnex[fn](DataGenerator.Content[obj][index || 0]));
     },
 
     insertApps: function insertApps() {
@@ -327,6 +332,11 @@ fixtures = {
                 Owner: 4
             };
 
+        // CASE: if empty db will throw SQLITE_MISUSE, hard to debug
+        if (_.isEmpty(permsToInsert)) {
+            return Promise.reject(new Error('no permission found:' + obj));
+        }
+
         permsToInsert = _.map(permsToInsert, function (perms) {
             actions.push(perms.action_type);
             return DataGenerator.forKnex.createBasic(perms);
@@ -347,12 +357,18 @@ fixtures = {
         });
 
         return db.knex('permissions').insert(permsToInsert).then(function () {
+            if (_.isEmpty(permissionsRoles)) {
+                return Promise.resolve();
+            }
+
             return db.knex('permissions_roles').insert(permissionsRoles);
         });
     },
+
     insertClients: function insertClients() {
         return db.knex('clients').insert(DataGenerator.forKnex.clients);
     },
+
     insertAccessToken: function insertAccessToken(override) {
         return db.knex('accesstokens').insert(DataGenerator.forKnex.createToken(override));
     }
@@ -386,8 +402,9 @@ toDoList = {
     role: function insertRole() { return fixtures.insertOne('roles', 'createRole'); },
     roles: function insertRoles() { return fixtures.insertRoles(); },
     tag: function insertTag() { return fixtures.insertOne('tags', 'createTag'); },
+    subscriber: function insertSubscriber() { return fixtures.insertOne('subscribers', 'createSubscriber'); },
 
-    posts: function insertPosts() { return fixtures.insertPosts(); },
+    posts: function insertPosts() { return fixtures.insertPostsAndTags(); },
     'posts:mu': function insertMultiAuthorPosts() { return fixtures.insertMultiAuthorPosts(); },
     tags: function insertMoreTags() { return fixtures.insertMoreTags(); },
     apps: function insertApps() { return fixtures.insertApps(); },
@@ -437,10 +454,15 @@ getFixtureOps = function getFixtureOps(toDos) {
     // Go through our list of things to do, and add them to an array
     _.each(toDos, function (value, toDo) {
         var tmp;
+
         if (toDo !== 'perms:init' && toDo.indexOf('perms:') !== -1) {
             tmp = toDo.split(':');
             fixtureOps.push(toDoList[tmp[0]](tmp[1]));
         } else {
+            if (!toDoList[toDo]) {
+                throw new Error('setup todo does not exist - spell mistake?');
+            }
+
             fixtureOps.push(toDoList[toDo]);
         }
     });
@@ -469,12 +491,16 @@ setup = function setup() {
     var self = this,
         args = arguments;
 
-    return function (done) {
+    return function setup(done) {
         Models.init();
 
-        return initFixtures.apply(self, args).then(function () {
-            done();
-        }).catch(done);
+        if (done) {
+            return initFixtures.apply(self, args).then(function () {
+                done();
+            }).catch(done);
+        } else {
+            return initFixtures.apply(self, args);
+        }
     };
 };
 
@@ -555,9 +581,13 @@ togglePermalinks = function togglePermalinks(request, toggle) {
 };
 
 teardown = function teardown(done) {
-    migration.reset().then(function () {
-        done();
-    }).catch(done);
+    if (done) {
+        migration.reset().then(function () {
+            done();
+        }).catch(done);
+    } else {
+        return migration.reset();
+    }
 };
 
 module.exports = {
@@ -571,6 +601,8 @@ module.exports = {
     initData: initData,
     clearData: clearData,
 
+    mocks: mocks,
+
     fixtures: fixtures,
 
     DataGenerator: DataGenerator,
@@ -581,6 +613,7 @@ module.exports = {
     // Helpers to make it easier to write tests which are easy to read
     context: {
         internal:   {context: {internal: true}},
+        external:   {context: {external: true}},
         owner:      {context: {user: 1}},
         admin:      {context: {user: 2}},
         editor:     {context: {user: 3}},

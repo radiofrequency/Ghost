@@ -1,6 +1,8 @@
-/*global describe, it, beforeEach, afterEach */
+/*global describe, it, beforeEach, afterEach, before */
 var should  = require('should'),
     sinon   = require('sinon'),
+    _       = require('lodash'),
+    moment  = require('moment'),
     rewire  = require('rewire'),
     Promise = require('bluebird'),
 
@@ -14,6 +16,7 @@ var should  = require('should'),
     fixtureUtils  = require('../../server/data/migration/fixtures/utils'),
     fixtures004   = require('../../server/data/migration/fixtures/004'),
     fixtures005   = require('../../server/data/migration/fixtures/005'),
+    fixtures006   = require('../../server/data/migration/fixtures/006'),
     ensureDefaultSettings = require('../../server/data/migration/fixtures/settings'),
 
     sandbox       = sinon.sandbox.create();
@@ -132,10 +135,12 @@ describe('Fixtures', function () {
                 });
 
                 describe('01-move-jquery-with-alert', function () {
+                    var moveJquery = fixtures004[0];
+
                     it('tries to move jQuery to ghost_foot', function (done) {
                         getObjStub.get.returns('');
 
-                        fixtures004[0]({}, loggerStub).then(function () {
+                        moveJquery({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('ghost_foot').should.be.true();
                             settingsEditStub.calledOnce.should.be.true();
@@ -152,7 +157,7 @@ describe('Fixtures', function () {
                             + '<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>\n\n'
                         );
 
-                        fixtures004[0]({}, loggerStub).then(function () {
+                        moveJquery({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('ghost_foot').should.be.true();
                             settingsEditStub.calledOnce.should.be.false();
@@ -166,7 +171,7 @@ describe('Fixtures', function () {
                     it('does not move jQuery to ghost_foot if the setting is missing', function (done) {
                         settingsOneStub.returns(Promise.resolve());
 
-                        fixtures004[0]({}, loggerStub).then(function () {
+                        moveJquery({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('ghost_foot').should.be.true();
                             settingsEditStub.called.should.be.false();
@@ -182,7 +187,7 @@ describe('Fixtures', function () {
                         configUtils.set({privacy: {useGoogleFonts: false}});
                         getObjStub.get.returns('');
 
-                        fixtures004[0]({}, loggerStub).then(function () {
+                        moveJquery({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('ghost_foot').should.be.true();
                             settingsEditStub.calledOnce.should.be.true();
@@ -196,8 +201,10 @@ describe('Fixtures', function () {
                 });
 
                 describe('02-update-private-setting-type', function () {
+                    var updateSettingType = fixtures004[1];
+
                     it('tries to update setting type correctly', function (done) {
-                        fixtures004[1]({}, loggerStub).then(function () {
+                        updateSettingType({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('isPrivate').should.be.true();
                             getObjStub.get.calledOnce.should.be.true();
@@ -215,7 +222,7 @@ describe('Fixtures', function () {
                     it('does not try to update setting type if it is already set', function (done) {
                         getObjStub.get.returns('private');
 
-                        fixtures004[1]({}, loggerStub).then(function () {
+                        updateSettingType({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('isPrivate').should.be.true();
                             getObjStub.get.calledOnce.should.be.true();
@@ -233,8 +240,10 @@ describe('Fixtures', function () {
                 });
 
                 describe('03-update-password-setting-type', function () {
+                    var updateSettingType = fixtures004[2];
+
                     it('tries to update setting type correctly', function (done) {
-                        fixtures004[2]({}, loggerStub).then(function () {
+                        updateSettingType({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('password').should.be.true();
                             settingsEditStub.calledOnce.should.be.true();
@@ -250,7 +259,7 @@ describe('Fixtures', function () {
                     it('does not try to update setting type if it is already set', function (done) {
                         getObjStub.get.returns('private');
 
-                        fixtures004[2]({}, loggerStub).then(function () {
+                        updateSettingType({}, loggerStub).then(function () {
                             settingsOneStub.calledOnce.should.be.true();
                             settingsOneStub.calledWith('password').should.be.true();
                             getObjStub.get.calledOnce.should.be.true();
@@ -268,8 +277,10 @@ describe('Fixtures', function () {
                 });
 
                 describe('04-update-ghost-admin-client', function () {
+                    var updateClient = fixtures004[3];
+
                     it('tries to update client correctly', function (done) {
-                        fixtures004[3]({}, loggerStub).then(function () {
+                        updateClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-admin'}).should.be.true();
                             getObjStub.get.calledTwice.should.be.true();
@@ -290,7 +301,7 @@ describe('Fixtures', function () {
                         getObjStub.get.withArgs('secret').returns('abc');
                         getObjStub.get.withArgs('status').returns('enabled');
 
-                        fixtures004[3]({}, loggerStub).then(function () {
+                        updateClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-admin'}).should.be.true();
                             getObjStub.get.calledTwice.should.be.true();
@@ -309,7 +320,7 @@ describe('Fixtures', function () {
                         getObjStub.get.withArgs('secret').returns('abc');
                         getObjStub.get.withArgs('status').returns('development');
 
-                        fixtures004[3]({}, loggerStub).then(function () {
+                        updateClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-admin'}).should.be.true();
                             getObjStub.get.calledTwice.should.be.true();
@@ -331,7 +342,7 @@ describe('Fixtures', function () {
                         getObjStub.get.withArgs('secret').returns('not_available');
                         getObjStub.get.withArgs('status').returns('enabled');
 
-                        fixtures004[3]({}, loggerStub).then(function () {
+                        updateClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-admin'}).should.be.true();
                             getObjStub.get.calledOnce.should.be.true();
@@ -350,11 +361,13 @@ describe('Fixtures', function () {
                 });
 
                 describe('05-add-ghost-frontend-client', function () {
+                    var addClient = fixtures004[4];
+
                     it('tries to add client correctly', function (done) {
                         var clientAddStub = sandbox.stub(models.Client, 'add').returns(Promise.resolve());
                         clientOneStub.returns(Promise.resolve());
 
-                        fixtures004[4]({}, loggerStub).then(function () {
+                        addClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-frontend'}).should.be.true();
                             clientAddStub.calledOnce.should.be.true();
@@ -369,7 +382,7 @@ describe('Fixtures', function () {
                     it('does not try to add client if it already exists', function (done) {
                         var clientAddStub = sandbox.stub(models.Client, 'add').returns(Promise.resolve());
 
-                        fixtures004[4]({}, loggerStub).then(function () {
+                        addClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-frontend'}).should.be.true();
                             clientAddStub.called.should.be.false();
@@ -382,7 +395,8 @@ describe('Fixtures', function () {
                 });
 
                 describe('06-clean-broken-tags', function () {
-                    var tagObjStub, tagCollStub, tagAllStub;
+                    var tagObjStub, tagCollStub, tagAllStub,
+                        cleanBrokenTags = fixtures004[5];
 
                     beforeEach(function () {
                         tagObjStub = {
@@ -396,7 +410,7 @@ describe('Fixtures', function () {
                     it('tries to clean broken tags correctly', function (done) {
                         tagObjStub.get.returns(',hello');
 
-                        fixtures004[5]({}, loggerStub).then(function () {
+                        cleanBrokenTags({}, loggerStub).then(function () {
                             tagAllStub.calledOnce.should.be.true();
                             tagCollStub.each.calledOnce.should.be.true();
                             tagObjStub.get.calledOnce.should.be.true();
@@ -414,7 +428,7 @@ describe('Fixtures', function () {
                     it('tries can handle tags which end up empty', function (done) {
                         tagObjStub.get.returns(',');
 
-                        fixtures004[5]({}, loggerStub).then(function () {
+                        cleanBrokenTags({}, loggerStub).then(function () {
                             tagAllStub.calledOnce.should.be.true();
                             tagCollStub.each.calledOnce.should.be.true();
                             tagObjStub.get.calledOnce.should.be.true();
@@ -432,7 +446,7 @@ describe('Fixtures', function () {
                     it('does not change tags if not necessary', function (done) {
                         tagObjStub.get.returns('hello');
 
-                        fixtures004[5]({}, loggerStub).then(function () {
+                        cleanBrokenTags({}, loggerStub).then(function () {
                             tagAllStub.calledOnce.should.be.true();
                             tagCollStub.each.calledOnce.should.be.true();
                             tagObjStub.get.calledOnce.should.be.true();
@@ -449,7 +463,7 @@ describe('Fixtures', function () {
                     it('does nothing if there are no tags', function (done) {
                         tagAllStub.returns(Promise.resolve());
 
-                        fixtures004[5]({}, loggerStub).then(function () {
+                        cleanBrokenTags({}, loggerStub).then(function () {
                             tagAllStub.calledOnce.should.be.true();
                             tagCollStub.each.called.should.be.false();
                             tagObjStub.get.called.should.be.false();
@@ -464,7 +478,8 @@ describe('Fixtures', function () {
                 });
 
                 describe('07-add-post-tag-order', function () {
-                    var tagOp1Stub, tagOp2Stub, tagObjStub, postObjStub, postCollStub, postAllStub;
+                    var tagOp1Stub, tagOp2Stub, tagObjStub, postObjStub, postCollStub, postAllStub,
+                        addPostTagOrder = fixtures004[6];
 
                     beforeEach(function () {
                         tagOp1Stub = sandbox.stub().returns(Promise.resolve());
@@ -489,7 +504,7 @@ describe('Fixtures', function () {
                     it('calls load on each post', function (done) {
                         // Fake mapThen behaviour
                         postCollStub.mapThen.callsArgWith(0, postObjStub).returns([]);
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             postAllStub.calledOnce.should.be.true();
                             postCollStub.mapThen.calledOnce.should.be.true();
                             postObjStub.load.calledOnce.should.be.true();
@@ -508,7 +523,7 @@ describe('Fixtures', function () {
                         postCollStub.mapThen.returns([]);
                         postAllStub.returns(Promise.resolve());
 
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             loggerStub.info.calledOnce.should.be.true();
                             loggerStub.warn.calledOnce.should.be.true();
                             postAllStub.calledOnce.should.be.true();
@@ -527,7 +542,7 @@ describe('Fixtures', function () {
                         // By returning from mapThen, we can skip doing tag.load in this test
                         postCollStub.mapThen.returns(postObjStub);
 
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             loggerStub.info.calledThrice.should.be.true();
                             loggerStub.warn.called.should.be.false();
                             postAllStub.calledOnce.should.be.true();
@@ -551,7 +566,7 @@ describe('Fixtures', function () {
                         // By returning from mapThen, we can skip doing tag.load in this test
                         postCollStub.mapThen.returns(postObjStub);
 
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             loggerStub.info.calledThrice.should.be.true();
                             loggerStub.warn.called.should.be.false();
                             postAllStub.calledOnce.should.be.true();
@@ -574,7 +589,7 @@ describe('Fixtures', function () {
                         // By returning from mapThen, we can skip doing tag.load in this test
                         postCollStub.mapThen.returns([postObjStub]);
 
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             loggerStub.info.calledOnce.should.be.true();
                             loggerStub.warn.calledOnce.should.be.true();
                             postAllStub.calledOnce.should.be.true();
@@ -597,7 +612,7 @@ describe('Fixtures', function () {
                         // By returning from mapThen, we can skip doing tag.load in this test
                         postCollStub.mapThen.returns([postObjStub]);
 
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             loggerStub.info.calledThrice.should.be.true();
                             loggerStub.warn.called.should.be.false();
                             postAllStub.calledOnce.should.be.true();
@@ -625,7 +640,7 @@ describe('Fixtures', function () {
                         // By returning from mapThen, we can skip doing tag.load in this test
                         postCollStub.mapThen.returns([postObjStub]);
 
-                        fixtures004[6]({}, loggerStub).then(function () {
+                        addPostTagOrder({}, loggerStub).then(function () {
                             loggerStub.info.calledThrice.should.be.true();
                             loggerStub.warn.called.should.be.false();
                             postAllStub.calledOnce.should.be.true();
@@ -656,7 +671,8 @@ describe('Fixtures', function () {
                 });
 
                 describe('08-add-post-fixture', function () {
-                    var postOneStub, postAddStub;
+                    var postOneStub, postAddStub,
+                        addPostFixture = fixtures004[7];
 
                     beforeEach(function () {
                         postOneStub = sandbox.stub(models.Post, 'findOne').returns(Promise.resolve());
@@ -664,7 +680,7 @@ describe('Fixtures', function () {
                     });
 
                     it('tries to add a new post fixture correctly', function (done) {
-                        fixtures004[7]({}, loggerStub).then(function () {
+                        addPostFixture({}, loggerStub).then(function () {
                             postOneStub.calledOnce.should.be.true();
                             loggerStub.info.calledOnce.should.be.true();
                             loggerStub.warn.called.should.be.false();
@@ -678,7 +694,7 @@ describe('Fixtures', function () {
                     it('does not try to add new post fixture if it already exists', function (done) {
                         postOneStub.returns(Promise.resolve({}));
 
-                        fixtures004[7]({}, loggerStub).then(function () {
+                        addPostFixture({}, loggerStub).then(function () {
                             postOneStub.calledOnce.should.be.true();
                             loggerStub.info.called.should.be.false();
                             loggerStub.warn.calledOnce.should.be.true();
@@ -719,10 +735,11 @@ describe('Fixtures', function () {
                     sequenceStub.firstCall.args[0][0].should.be.a.Function().with.property('name', 'runVersionTasks');
 
                     sequenceStub.secondCall.calledWith(sinon.match.array, sinon.match.object, loggerStub).should.be.true();
-                    sequenceStub.secondCall.args[0].should.be.an.Array().with.lengthOf(3);
+                    sequenceStub.secondCall.args[0].should.be.an.Array().with.lengthOf(4);
                     sequenceStub.secondCall.args[0][0].should.be.a.Function().with.property('name', 'updateGhostClientsSecrets');
                     sequenceStub.secondCall.args[0][1].should.be.a.Function().with.property('name', 'addGhostFrontendClient');
                     sequenceStub.secondCall.args[0][2].should.be.a.Function().with.property('name', 'addClientPermissions');
+                    sequenceStub.secondCall.args[0][3].should.be.a.Function().with.property('name', 'addSubscriberPermissions');
 
                     // Reset
                     sequenceReset();
@@ -733,11 +750,12 @@ describe('Fixtures', function () {
             describe('Tasks:', function () {
                 it('should have tasks for 005', function () {
                     should.exist(fixtures005);
-                    fixtures005.should.be.an.Array().with.lengthOf(3);
+                    fixtures005.should.be.an.Array().with.lengthOf(4);
                 });
 
                 describe('01-update-ghost-client-secrets', function () {
-                    var queryStub, clientForgeStub, clientEditStub;
+                    var queryStub, clientForgeStub, clientEditStub,
+                        updateClient = fixtures005[0];
 
                     beforeEach(function () {
                         queryStub = {
@@ -754,7 +772,7 @@ describe('Fixtures', function () {
                         queryStub.fetch.returns(new Promise.resolve({models: []}));
 
                         // Execute
-                        fixtures005[0]({}, loggerStub).then(function () {
+                        updateClient({}, loggerStub).then(function () {
                             clientForgeStub.calledOnce.should.be.true();
                             clientEditStub.called.should.be.false();
                             loggerStub.info.called.should.be.false();
@@ -768,7 +786,7 @@ describe('Fixtures', function () {
                         queryStub.fetch.returns(new Promise.resolve({models: [{id: 1}]}));
 
                         // Execute
-                        fixtures005[0]({}, loggerStub).then(function () {
+                        updateClient({}, loggerStub).then(function () {
                             clientForgeStub.calledOnce.should.be.true();
                             clientEditStub.called.should.be.true();
                             loggerStub.info.calledOnce.should.be.true();
@@ -779,7 +797,8 @@ describe('Fixtures', function () {
                 });
 
                 describe('02-add-ghost-scheduler-client', function () {
-                    var clientOneStub;
+                    var clientOneStub,
+                        addClient = fixtures005[1];
 
                     beforeEach(function () {
                         clientOneStub = sandbox.stub(models.Client, 'findOne').returns(Promise.resolve({}));
@@ -789,7 +808,7 @@ describe('Fixtures', function () {
                         var clientAddStub = sandbox.stub(models.Client, 'add').returns(Promise.resolve());
                         clientOneStub.returns(Promise.resolve());
 
-                        fixtures005[1]({}, loggerStub).then(function () {
+                        addClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-scheduler'}).should.be.true();
                             clientAddStub.calledOnce.should.be.true();
@@ -804,7 +823,7 @@ describe('Fixtures', function () {
                     it('does not try to add client if it already exists', function (done) {
                         var clientAddStub = sandbox.stub(models.Client, 'add').returns(Promise.resolve());
 
-                        fixtures005[1]({}, loggerStub).then(function () {
+                        addClient({}, loggerStub).then(function () {
                             clientOneStub.calledOnce.should.be.true();
                             clientOneStub.calledWith({slug: 'ghost-scheduler'}).should.be.true();
                             clientAddStub.called.should.be.false();
@@ -817,7 +836,8 @@ describe('Fixtures', function () {
                 });
 
                 describe('03-add-client-permissions', function () {
-                    var modelResult, addModelStub, relationResult, addRelationStub;
+                    var modelResult, addModelStub, relationResult, addRelationStub,
+                        addClientPermissions = fixtures005[2];
 
                     beforeEach(function () {
                         modelResult = {expected: 1, done: 1};
@@ -831,7 +851,7 @@ describe('Fixtures', function () {
 
                     it('should find the correct model & relation to add', function (done) {
                         // Execute
-                        fixtures005[2]({}, loggerStub).then(function () {
+                        addClientPermissions({}, loggerStub).then(function () {
                             addModelStub.calledOnce.should.be.true();
                             addModelStub.calledWith(
                                 fixtureUtils.findModelFixtures('Permission', {object_type: 'client'})
@@ -853,7 +873,7 @@ describe('Fixtures', function () {
                         // Setup
                         modelResult.expected = 3;
                         // Execute
-                        fixtures005[2]({}, loggerStub).then(function () {
+                        addClientPermissions({}, loggerStub).then(function () {
                             addModelStub.calledOnce.should.be.true();
                             addModelStub.calledWith(
                                 fixtureUtils.findModelFixtures('Permission', {object_type: 'client'})
@@ -868,6 +888,256 @@ describe('Fixtures', function () {
                             loggerStub.warn.calledOnce.should.be.true();
 
                             done();
+                        });
+                    });
+                });
+
+                describe('04-add-subscriber-permissions', function () {
+                    var modelResult, addModelStub, relationResult, addRelationStub,
+                        addSubscriberPermissions = fixtures005[3];
+
+                    beforeEach(function () {
+                        modelResult = {expected: 1, done: 1};
+                        addModelStub = sandbox.stub(fixtureUtils, 'addFixturesForModel')
+                            .returns(Promise.resolve(modelResult));
+
+                        relationResult = {expected: 1, done: 1};
+                        addRelationStub = sandbox.stub(fixtureUtils, 'addFixturesForRelation')
+                            .returns(Promise.resolve(relationResult));
+                    });
+
+                    it('should find the correct model & relation to add', function (done) {
+                        // Execute
+                        addSubscriberPermissions({}, loggerStub).then(function () {
+                            addModelStub.calledOnce.should.be.true();
+                            addModelStub.calledWith(
+                                fixtureUtils.findModelFixtures('Permission', {object_type: 'subscriber'})
+                            ).should.be.true();
+
+                            addRelationStub.calledOnce.should.be.true();
+                            addRelationStub.calledWith(
+                                fixtureUtils.findPermissionRelationsForObject('subscriber')
+                            ).should.be.true();
+
+                            loggerStub.info.calledTwice.should.be.true();
+                            loggerStub.warn.called.should.be.false();
+
+                            done();
+                        });
+                    });
+
+                    it('should warn the result shows less work was done than expected', function (done) {
+                        // Setup
+                        modelResult.expected = 3;
+                        // Execute
+                        addSubscriberPermissions({}, loggerStub).then(function () {
+                            addModelStub.calledOnce.should.be.true();
+                            addModelStub.calledWith(
+                                fixtureUtils.findModelFixtures('Permission', {object_type: 'subscriber'})
+                            ).should.be.true();
+
+                            addRelationStub.calledOnce.should.be.true();
+                            addRelationStub.calledWith(
+                                fixtureUtils.findPermissionRelationsForObject('subscriber')
+                            ).should.be.true();
+
+                            loggerStub.info.calledOnce.should.be.true();
+                            loggerStub.warn.calledOnce.should.be.true();
+
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+
+        describe('Update to 006', function () {
+            it('should call all the 006 fixture upgrades', function (done) {
+                // Setup
+                // Create a new stub, this will replace sequence, so that db calls don't actually get run
+                var sequenceStub = sandbox.stub(),
+                    sequenceReset = update.__set__('sequence', sequenceStub);
+
+                // The first time we call sequence, it should be to execute a top level version, e.g 006
+                // yieldsTo('0') means this stub will execute the function at index 0 of the array passed as the
+                // first argument. In short the `runVersionTasks` function gets executed, and sequence gets called
+                // again with the array of tasks to execute for 006, which is what we want to check
+                sequenceStub.onFirstCall().yieldsTo('0').returns(Promise.resolve([]));
+
+                update(['006'], loggerStub).then(function (result) {
+                    should.exist(result);
+
+                    loggerStub.info.calledTwice.should.be.true();
+                    loggerStub.warn.called.should.be.false();
+
+                    sequenceStub.calledTwice.should.be.true();
+
+                    sequenceStub.firstCall.calledWith(sinon.match.array, sinon.match.object, loggerStub).should.be.true();
+                    sequenceStub.firstCall.args[0].should.be.an.Array().with.lengthOf(1);
+                    sequenceStub.firstCall.args[0][0].should.be.a.Function().with.property('name', 'runVersionTasks');
+
+                    sequenceStub.secondCall.calledWith(sinon.match.array, sinon.match.object, loggerStub).should.be.true();
+                    sequenceStub.secondCall.args[0].should.be.an.Array().with.lengthOf(1);
+                    sequenceStub.secondCall.args[0][0].should.be.a.Function().with.property('name', 'transformDatesIntoUTC');
+
+                    // Reset
+                    sequenceReset();
+                    done();
+                }).catch(done);
+            });
+
+            describe('Tasks:', function () {
+                it('should have tasks for 006', function () {
+                    should.exist(fixtures006);
+                    fixtures006.should.be.an.Array().with.lengthOf(1);
+                });
+
+                describe('01-transform-dates-into-utc', function () {
+                    var updateClient = fixtures006[0],
+                        serverTimezoneOffset,
+                        migrationsSettingsValue;
+
+                    beforeEach(function () {
+                        sandbox.stub(models.Base, 'transaction', function (stubDone) {
+                            return new Promise(function (resolve) {
+                                stubDone();
+
+                                setTimeout(function () {
+                                    resolve();
+                                }, 500);
+                            });
+                        });
+
+                        configUtils.config.database.isPostgreSQL = function () {
+                            return false;
+                        };
+
+                        sandbox.stub(Date.prototype, 'getTimezoneOffset', function () {
+                            return serverTimezoneOffset;
+                        });
+
+                        sandbox.stub(models.Settings, 'findOne', function () {
+                            return Promise.resolve({attributes: {value: migrationsSettingsValue}});
+                        });
+                    });
+
+                    describe('error cases', function () {
+                        before(function () {
+                            serverTimezoneOffset = 0;
+                        });
+
+                        it('server offset is 0', function (done) {
+                            migrationsSettingsValue = '{}';
+
+                            updateClient({}, loggerStub)
+                                .then(function () {
+                                    loggerStub.warn.called.should.be.true();
+                                    done();
+                                })
+                                .catch(done);
+                        });
+
+                        it('migration already ran', function (done) {
+                            migrationsSettingsValue = '{ "006/01": "timestamp" }';
+
+                            updateClient({}, loggerStub)
+                                .then(function () {
+                                    loggerStub.warn.called.should.be.true();
+                                    done();
+                                })
+                                .catch(done);
+                        });
+                    });
+
+                    describe('success cases', function () {
+                        var newModels, createdAt, migrationsSettingsWasUpdated;
+
+                        before(function () {
+                            serverTimezoneOffset = -60;
+                            migrationsSettingsValue = '{}';
+                        });
+
+                        beforeEach(function () {
+                            newModels = {};
+                            migrationsSettingsWasUpdated = false;
+                            serverTimezoneOffset = -60;
+                            migrationsSettingsValue = '{}';
+
+                            sandbox.stub(models.Settings.prototype, 'fetch', function () {
+                                // CASE: we update migrations settings entry
+                                if (this.get('key') === 'migrations') {
+                                    migrationsSettingsWasUpdated = true;
+                                    return Promise.resolve(newModels[Object.keys(newModels)[0]]);
+                                }
+
+                                return Promise.resolve(newModels[Number(this.get('key'))]);
+                            });
+
+                            sandbox.stub(models.Base.Model.prototype, 'save', function (data) {
+                                if (data.key !== 'migrations') {
+                                    should.exist(data.created_at);
+                                }
+
+                                return Promise.resolve({});
+                            });
+
+                            sandbox.stub(models.Base.Model, 'findAll', function () {
+                                var model = models.Base.Model.forge();
+                                model.set('id', Date.now());
+                                model.set('created_at', createdAt);
+                                model.set('key', model.id.toString());
+
+                                newModels[model.id] = model;
+                                return Promise.resolve({models: [model]});
+                            });
+
+                            sandbox.stub(models.Base.Model, 'findOne', function (data) {
+                                return Promise.resolve(newModels[data.id]);
+                            });
+
+                            sandbox.stub(models.Base.Model, 'edit').returns(Promise.resolve({}));
+                        });
+
+                        it('sqlite: no UTC update, only format', function (done) {
+                            createdAt = moment(1464798678537).toDate();
+                            configUtils.config.database.client = 'sqlite3';
+
+                            moment(createdAt).format('YYYY-MM-DD HH:mm:ss').should.eql('2016-06-01 16:31:18');
+
+                            updateClient({}, loggerStub)
+                                .then(function () {
+                                    _.each(newModels, function (model) {
+                                        moment(model.get('created_at')).format('YYYY-MM-DD HH:mm:ss').should.eql('2016-06-01 16:31:18');
+                                    });
+
+                                    migrationsSettingsWasUpdated.should.eql(true);
+                                    done();
+                                })
+                                .catch(done);
+                        });
+
+                        it('mysql: UTC update', function (done) {
+                            /**
+                             * we fetch 2016-06-01 06:00:00 from the database which was stored as local representation
+                             * our base model will wrap it into a UTC moment
+                             * the offset is 1 hour
+                             * we expect 2016-06-01 05:00:00
+                             */
+                            createdAt = moment('2016-06-01 06:00:00').toDate();
+                            configUtils.config.database.client = 'mysql';
+
+                            moment(createdAt).format('YYYY-MM-DD HH:mm:ss').should.eql('2016-06-01 06:00:00');
+
+                            updateClient({}, loggerStub)
+                                .then(function () {
+                                    _.each(newModels, function (model) {
+                                        moment(model.get('created_at')).format('YYYY-MM-DD HH:mm:ss').should.eql('2016-06-01 05:00:00');
+                                    });
+
+                                    migrationsSettingsWasUpdated.should.eql(true);
+                                    done();
+                                })
+                                .catch(done);
                         });
                     });
                 });
@@ -921,9 +1191,9 @@ describe('Fixtures', function () {
                 clientOneStub.calledThrice.should.be.true();
                 clientAddStub.calledThrice.should.be.true();
 
-                permOneStub.callCount.should.eql(35);
+                permOneStub.callCount.should.eql(40);
                 permsAddStub.called.should.be.true();
-                permsAddStub.callCount.should.eql(35);
+                permsAddStub.callCount.should.eql(40);
 
                 permsAllStub.calledOnce.should.be.true();
                 rolesAllStub.calledOnce.should.be.true();
@@ -932,8 +1202,8 @@ describe('Fixtures', function () {
 
                 // Relations
                 modelMethodStub.filter.called.should.be.true();
-                // 25 permissions, 1 tag
-                modelMethodStub.filter.callCount.should.eql(25 + 1);
+                // 26 permissions, 1 tag
+                modelMethodStub.filter.callCount.should.eql(28 + 1);
                 modelMethodStub.find.called.should.be.true();
                 // 3 roles, 1 post
                 modelMethodStub.find.callCount.should.eql(3 + 1);
