@@ -14,6 +14,7 @@ later = require('later');
 api = require('./core/server/api');
 
 function publishFirstDraftPost() {
+    console.log("publishing post");
     api.posts.browse({
         filter: 'tags:scheduled',
         status: 'draft',
@@ -53,8 +54,11 @@ function publishFirstDraftPost() {
 }
 
 function startSchedule() {
-    var schedule = later.parse.text('at 9:am');
+    later.date.localTime();
+    var schedule = later.parse.text('at 9:00am');
     later.setInterval(publishFirstDraftPost, schedule);
+    var schedule2 = later.parse.text("at 4:30pm")
+    later.setInterval(publishFirstDraftPost, schedule2);
 }
 
 ghost().then(function (ghostServer) {
